@@ -25,21 +25,22 @@ document.getElementById('sendBtn').addEventListener('click', () => {
                 console.log("Tous les messages ont été envoyés");
                 return;
             }
-            
+        
             let [name, number] = lines[index].split(/[,;]/);
             if (number) {
-                // Nettoyage et formatage du numéro de téléphone
                 number = number.trim();
                 if (number.startsWith("0")) {
                     number = "33" + number.substring(1);
                 }
-                const url = `https://web.whatsapp.com/send?phone=${number}&text=${message}`;
-                console.log(`Envoi du message à ${name} (${number})`);
-                
-                // Mettre à jour l'onglet avec l'URL de WhatsApp
+        
+                // Récupérer le message et remplacer {nom} par le vrai nom
+                let customMessage = decodeURIComponent(message).replace("{nom}", name.trim()); 
+                const url = `https://web.whatsapp.com/send?phone=${number}&text=${encodeURIComponent(customMessage)}`;
+
+                console.log(`Envoi du message à ${name} (${number}) : ${customMessage}`);
+        
                 chrome.tabs.update(tabId, { url: url }, () => {
                     setTimeout(() => {
-                        // Exécuter un script pour cliquer sur le bouton d'envoi
                         chrome.scripting.executeScript({
                             target: { tabId: tabId },
                             function: () => {
@@ -52,12 +53,11 @@ document.getElementById('sendBtn').addEventListener('click', () => {
                                 }
                             }
                         }, () => {
-                            // Attendre avant d'envoyer le message suivant
                             setTimeout(() => {
                                 console.log("Passage au contact suivant");
                                 index++;
                                 sendMessage(tabId);
-                            }, 5000);
+                            }, 5000); // Attendre avant d'envoyer le message suivant
                         });
                     }, 5000); // Attendre que la page se charge
                 });
@@ -67,6 +67,7 @@ document.getElementById('sendBtn').addEventListener('click', () => {
                 sendMessage(tabId);
             }
         }
+        
 
         // Récupérer l'onglet actif pour y ouvrir les liens WhatsApp
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
