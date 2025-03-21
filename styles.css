@@ -1,27 +1,72 @@
 body {
     font-family: Arial, sans-serif;
-    width: 300px;
+    width: 500px;
+    height: 500px;
     padding: 20px;
     background: #f4f4f4;
     text-align: center;
 }
+
 .container {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
+
 input, textarea, button {
     width: 100%;
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
 }
+
 button {
     background: #25D366;
     color: white;
     font-size: 16px;
     cursor: pointer;
 }
+
 button:hover {
     background: #1da851;
+}
+
+.log-container {
+    max-height: 250px;
+    overflow-y: auto;
+    background: white;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 12px;
+    text-align: left;
+    border: 1px solid #444;
+}
+
+.log-entry {
+    margin-bottom: 5px;
+}
+
+.log-debug {
+    color: gray;
+    font-style: italic;
+    display: none;
+}
+
+.log-info {
+    color: rgb(0, 135, 180);
+}
+
+.log-warning {
+    color: rgb(172, 172, 0);
+}
+
+.log-error {
+    color: red;
+}
+
+.log-time {
+    color: gray;
+    font-size: 10px;
 }
