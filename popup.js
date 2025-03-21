@@ -105,3 +105,5 @@ document.getElementById('sendBtn').addEventListener('click', () => {
     // Lit le fichier CSV
     reader.readAsText(fileInput.files[0]);
 });
+
+// test de l'ajout d'un commentaire
