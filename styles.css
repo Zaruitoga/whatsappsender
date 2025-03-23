@@ -29,6 +29,10 @@ button {
     cursor: pointer;
 }
 
+.exportBtn {
+    background: #0075be;
+}
+
 button:hover {
     background: #1da851;
 }
