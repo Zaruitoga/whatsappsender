@@ -15,9 +15,11 @@ body {
 
 input, textarea, button {
     width: 100%;
+    max-width: 460px;
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
+    margin: 0 auto;
 }
 
 button {
