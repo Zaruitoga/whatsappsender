@@ -1,3 +1,5 @@
+let cleanedData = [];
+
 function logMessage(type, message) 
 {
 	const logContainer = document.getElementById("logContainer");
@@ -113,8 +115,9 @@ document.getElementById('fileInput').addEventListener('change', (event) => {
 
     const reader = new FileReader();
     reader.onload = function (e) {
-        const { data: cleanedData } = parseCSV(e.target.result);
-        
+        const parsedResult = parseCSV(e.target.result);
+        cleanedData = parsedResult.data; // Mise à jour de cleanedData
+
         if (cleanedData.length > 0) {
             document.getElementById("validationIcon").style.display = "inline"; // ✅ Afficher l'icône de validation
         }
@@ -125,121 +128,129 @@ document.getElementById('fileInput').addEventListener('change', (event) => {
     };
 
     reader.readAsText(file);
-});	
+});
 
-document.getElementById('sendBtn').addEventListener('click', () => 
-{
-	logMessage("debug", "Bouton Envoyer cliqué");
-	if (!cleanedData || cleanedData.length === 0) {
+document.getElementById('sendBtn').addEventListener('click', () => {
+    logMessage("debug", "Bouton Envoyer cliqué");
+    if (!cleanedData || cleanedData.length === 0) {
         logMessage("error", "Aucun fichier valide. Veuillez importer un CSV.");
         return;
     }
-	const message = document.getElementById('message').value;
+    const message = document.getElementById('message').value;
 
-	// Vérifie si un fichier CSV a été chargé et si un message a été saisi
-	if (!message) 
-	{
-		logMessage("error", "Message manquant");
-		return;
-	}
-	let index = 1; // Débute à la première ligne après l'en-tête
+    // Vérifie si un fichier CSV a été chargé et si un message a été saisi
+    if (!message) {
+        logMessage("error", "Message manquant");
+        return;
+    }
+    let index = 0; // Débute à la première ligne après l'en-tête
 
-	function sendMessage(tabId) 
-	{
-		if (index >= cleanedData.length) 
-		{
-			logMessage("info", "Tous les messages ont été envoyés !");
-			return;
-		}
+    function sendMessage(tabId) {
+        if (index >= cleanedData.length) {
+            logMessage("info", "Tous les messages ont été envoyés !");
+            return;
+        }
 
-		const { name, number } = cleanedData[index];
+        const { name, number } = cleanedData[index];
 
-		if (number) 
-		{
-			if (number.startsWith("0")) number = "33" + number.substring(1);
-			let customMessage = message.replace("{nom}", name);
-			const url = `https://web.whatsapp.com/send?phone=${number}&text=${encodeURIComponent(customMessage)}`;
+        if (number) {
+            let customMessage = message.replace("{nom}", name);
+            const url = `https://web.whatsapp.com/send?phone=${number}&text=${encodeURIComponent(customMessage)}`;
 
-			logMessage("info", `Préparation envoi : ${name} (${number})`);
+            logMessage("info", `Préparation envoi : ${name} (${number})`);
 
-			chrome.tabs.update(tabId, { url: url }, () => 
-			{
-				logMessage("debug", "Attente du bouton d'envoi...");
-				setTimeout(() => {
-					chrome.scripting.executeScript({
-						target: { tabId: tabId },
-						function: () => {
-							return new Promise((resolve, reject) => {
-								const startTime = Date.now();
-								const timeout = 15000;
+            chrome.tabs.update(tabId, { url: url }, () => {
+                logMessage("debug", "Attente du chargement complet de la page...");
 
-								function check() {
-									const sendButton = document.querySelector('[data-icon="send"]');
-									if (sendButton) {
-										// ✅ Récupération du nombre de messages juste avant l'envoi
-										const previousMessageCount = document.querySelectorAll('.message-out').length;
+                function waitForPageLoad() {
+                    chrome.scripting.executeScript({
+                        target: { tabId: tabId },
+                        func: () => document.readyState
+                    }, (results) => {
+                        if (results && results[0].result === 'complete') {
+                            logMessage("debug", "Page chargée, injection du script...");
+                            injectScript(tabId);
+                        } else {
+                            setTimeout(waitForPageLoad, 500);
+                        }
+                    });
+                }
 
-										sendButton.click();
+                function injectScript(tabId) {
+                    chrome.scripting.executeScript({
+                        target: { tabId: tabId },
+                        func: (customMessage) => {
+                            return new Promise((resolve, reject) => {
+                                const startTime = Date.now();
+                                const timeout = 15000;
 
-										function waitForMessageSent() {
-											const messages = document.querySelectorAll('.message-out');
-											if (messages.length > previousMessageCount) {
-												const lastMessage = messages[messages.length - 1];
-												const statusIcon = lastMessage.querySelector('[data-icon="msg-check"], [data-icon="msg-dblcheck"], [data-icon="msg-dblcheck-ack"]');
+                                function check() {
+                                    const sendButton = document.querySelector('[data-icon="send"]');
+                                    if (sendButton) {
+                                        // ✅ Récupération du nombre de messages juste avant l'envoi
+                                        const previousMessageCount = document.querySelectorAll('.message-out').length;
 
-												if (statusIcon) {
-													resolve("Message confirmé envoyé !");
-												} else {
-													setTimeout(waitForMessageSent, 500);
-												}
-											} else if (Date.now() - startTime < timeout) {
-												setTimeout(waitForMessageSent, 500);
-											} else {
-												reject("Le message n'est pas apparu après 15s.");
-											}
-										}
+                                        sendButton.click();
 
-										waitForMessageSent();
+                                        function waitForMessageSent() {
+                                            const messages = document.querySelectorAll('.message-out');
+                                            if (messages.length > previousMessageCount) {
+                                                const lastMessage = messages[messages.length - 1];
+                                                const statusIcon = lastMessage.querySelector('[data-icon="msg-check"], [data-icon="msg-dblcheck"], [data-icon="msg-dblcheck-ack"]');
+                                                const messageText = lastMessage.querySelector('.copyable-text').innerText;
 
-									} else if (Date.now() - startTime < timeout) {
-										setTimeout(check, 500);
-									} else {
-										reject("Bouton d'envoi introuvable après 15s.");
-									}
-								}
-								check();
-							});
-						}
-					}, (result) => {
-						if (chrome.runtime.lastError) {
-							logMessage("error", "Erreur d'exécution du script : " + chrome.runtime.lastError.message);
-						} else if (result && result[0]?.result === "Message confirmé envoyé !") {
-							logMessage("info", `Message envoyé et confirmé pour ${name} (${number})`);
-							index++; 
-							sendMessage(tabId); 
-						} else {
-							logMessage("error", "Impossible de confirmer l'envoi du message");
-						}
-					});
-				}, 1000);
-			});
-		} 
-		else 
-		{
-			logMessage("warning", `Numéro manquant pour ${name}, passage à la ligne suivante.`);
-			index++;
-			sendMessage(tabId);
-		}
-	}
+                                                if (statusIcon && messageText.includes(customMessage)) {
+                                                    resolve("Message confirmé envoyé !");
+                                                } else {
+                                                    setTimeout(waitForMessageSent, 500);
+                                                }
+                                            } else if (Date.now() - startTime < timeout) {
+                                                setTimeout(waitForMessageSent, 500);
+                                            } else {
+                                                reject("Le message n'est pas apparu après 15s.");
+                                            }
+                                        }
 
-	// Récupère l'onglet actif dans Chrome
-	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => 
-	{
-		if (tabs.length === 0) 
-		{
-			logMessage("error", "Aucun onglet actif trouvé");
-			return;
-		}
-		sendMessage(tabs[0].id); // Démarre l'envoi des messages
-	});
+                                        waitForMessageSent();
+
+                                    } else if (Date.now() - startTime < timeout) {
+                                        setTimeout(check, 500);
+                                    } else {
+                                        reject("Bouton d'envoi introuvable après 15s.");
+                                    }
+                                }
+                                check();
+                            });
+                        },
+                        args: [customMessage]
+                    }, (result) => {
+                        if (chrome.runtime.lastError) {
+                            logMessage("error", "Erreur d'exécution du script : " + chrome.runtime.lastError.message);
+                        } else if (result && result[0].result === "Message confirmé envoyé !") {
+                            logMessage("info", `Message envoyé et confirmé pour ${name} (${number})`);
+                            index++;
+                            sendMessage(tabId);
+                        } else {
+                            logMessage("error", "Impossible de confirmer l'envoi du message");
+                        }
+                    });
+                }
+                logMessage("info", "Attente de une seconde avant l'injection de script")
+                setTimeout(waitForPageLoad, 1000);
+            });
+        } else {
+            logMessage("warning", `Numéro manquant pour ${name}, passage à la ligne suivante.`);
+            index++;
+            sendMessage(tabId);
+        }
+    }
+
+    // Récupère l'onglet actif dans Chrome
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs.length === 0) {
+            logMessage("error", "Aucun onglet actif trouvé");
+            return;
+        }
+        sendMessage(tabs[0].id); // Démarre l'envoi des messages
+    });
 });
