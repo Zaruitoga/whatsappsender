@@ -130,6 +130,12 @@ document.getElementById('fileInput').addEventListener('change', (event) => {
     reader.readAsText(file);
 });
 
+function updateProgressBar(current, total) {
+    const progressBar = document.getElementById("progressBar");
+    const percentage = Math.round((current / total) * 100);
+    progressBar.style.width = `${percentage}%`;
+}
+
 document.getElementById('sendBtn').addEventListener('click', () => {
     logMessage("debug", "Bouton Envoyer cliqué");
     if (!cleanedData || cleanedData.length === 0) {
@@ -145,9 +151,12 @@ document.getElementById('sendBtn').addEventListener('click', () => {
     }
     let index = 0; // Débute à la première ligne après l'en-tête
 
+    updateProgressBar(0, cleanedData.length); // Initialisation de la barre de progression
+
     function sendMessage(tabId) {
         if (index >= cleanedData.length) {
             logMessage("info", "Tous les messages ont été envoyés !");
+            updateProgressBar(cleanedData.length, cleanedData.length); // Complète la barre de progression
             return;
         }
 
@@ -229,6 +238,7 @@ document.getElementById('sendBtn').addEventListener('click', () => {
                         } else if (result && result[0].result === "Message confirmé envoyé !") {
                             logMessage("info", `Message envoyé et confirmé pour ${name} (${number})`);
                             index++;
+                            updateProgressBar(index, cleanedData.length); // Mise à jour de la barre de progression
                             sendMessage(tabId);
                         } else {
                             logMessage("error", "Impossible de confirmer l'envoi du message");
@@ -241,6 +251,7 @@ document.getElementById('sendBtn').addEventListener('click', () => {
         } else {
             logMessage("warning", `Numéro manquant pour ${name}, passage à la ligne suivante.`);
             index++;
+            updateProgressBar(index, cleanedData.length); // Mise à jour de la barre de progression
             sendMessage(tabId);
         }
     }
