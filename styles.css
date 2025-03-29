@@ -76,3 +76,20 @@ button:hover {
     color: gray;
     font-size: 10px;
 }
+
+.progress-container {
+    width: 100%;
+    max-width: 460px;
+    height: 20px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 10px auto;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0;
+    background: #25D366;
+    transition: width 0.3s ease;
+}
