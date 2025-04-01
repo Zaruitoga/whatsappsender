@@ -1,60 +1,43 @@
-# Documentation de l'Extension WhatsApp Sender
+# WhatsApp Sender (En Développement)
 
-## Introduction
+## Description
 
-WhatsApp Sender est une extension Chrome permettant d'envoyer des messages WhatsApp en masse à partir d'un fichier CSV. Elle est idéale pour les campagnes de communication et les rappels automatisés !
+WhatsApp Sender est une extension Chrome en cours de développement. Elle vise à permettre l'envoi de messages WhatsApp en masse à partir d'un fichier CSV, avec des fonctionnalités de personnalisation et d'automatisation.
 
-## Installation
+## Objectifs du Projet
 
-1. Téléchargez ou clonez le projet depuis GitHub.
+- Détection automatique des colonnes pertinentes dans un fichier CSV.
+- Personnalisation des messages avec des variables dynamiques (ex. `{nom}`).
+- Conversion des numéros de téléphone au format international.
+- Automatisation de l'envoi des messages via WhatsApp Web.
+
+## Installation (Pour Développeurs)
+
+1. Clonez ce dépôt GitHub.
 2. Ouvrez Google Chrome et accédez à `chrome://extensions/`.
-3. Activez le mode développeur (en haut à droite).
+3. Activez le mode développeur.
 4. Cliquez sur "Charger l'extension non empaquetée".
-5. Sélectionnez le dossier du projet et validez !
+5. Sélectionnez le dossier du projet.
 
-## Format du fichier CSV
+## Format CSV Prévu
 
-Le fichier CSV doit contenir une ligne d'en-tête avec les colonnes `Nom` et `Numéro de téléphone`.
-L'extension détectera automatiquement ces colonnes, même si elles ne sont pas dans le même ordre.
+Le fichier CSV doit inclure une ligne d'en-tête avec des colonnes comme `Nom` et `Numéro de téléphone`.
 
-### Exemple de fichier CSV valide :
+### Exemple :
 
 ```
-Nom,Email,Numéro de téléphone,Adresse
-Ethan,ethan@email.com,0612345678,Paris
-Alice,alice@email.com,0712345678,Lyon
+Nom,Numéro de téléphone
+Ethan,0612345678
+Alice,0712345678
 ```
 
-Les numéros doivent être en format français (06 ou 07), ils seront automatiquement convertis en +33.
+## Statut Actuel
 
-## Utilisation
-
-1. Ouvrez l'extension en cliquant sur son icône.
-2. Chargez votre fichier CSV.
-3. Saisissez le message à envoyer (vous pouvez inclure `{nom}` pour personnaliser chaque message avec le prénom du destinataire).
-4. Cliquez sur "Envoyer" et laissez l'extension faire le travail !
-
-## Fonctionnalités
-
-✅ Détection automatique des colonnes `Nom` et `Numéro de téléphone`.
-✅ Remplacement dynamique de `{nom}` par le prénom de chaque contact.
-✅ Conversion automatique des numéros français en format international.
-✅ Automatisation de l'envoi des messages WhatsApp.
-✅ Délai de 5 secondes entre chaque envoi pour éviter le spam.
-✅ Gestion des erreurs et vérifications avant l'envoi.
-
-## Remarques Importantes
-
-- L'extension ouvre les conversations WhatsApp dans le même onglet.
-- Un délai de 5 secondes est ajouté entre chaque envoi pour éviter les blocages.
-- L'envoi se fait automatiquement après ouverture du chat.
-- Vérifiez bien que WhatsApp Web est connecté avant de lancer l'envoi.
+Ce projet est en phase de développement. Certaines fonctionnalités peuvent être incomplètes ou non fonctionnelles.
 
 ## Auteur
 
-Développé par **Ethan Lepareur**.
+Développé par **Ethan Lepareur** et **Félix Le Saulnier**.
 
-Contact : ethan.lepareur\@gmail.com
-
-Améliorations & Contributions : N'hésitez pas à proposer des améliorations sur GitHub !
+Pour toute question ou suggestion, contactez : lef3459@gmail.com
 
